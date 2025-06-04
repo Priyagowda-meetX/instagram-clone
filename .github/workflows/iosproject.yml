@@ -1,0 +1,101 @@
+---
+format_version: "11"
+default_step_lib_source: "https://github.com/bitrise-io/bitrise-steplib.git"
+
+app:
+  envs:
+    # Your Xcode scheme (replace with your actual scheme name)
+    - BITRISE_SCHEME: "instagram-clone"
+    # Path to your Xcode project (.xcodeproj) or workspace (.xcworkspace)
+    - BITRISE_PROJECT_PATH: "instagram-clone.xcodeproj"
+
+workflows:
+  build-ipa:
+    description: |
+      Build and archive .ipa for the iOS app.
+      Signing steps are commented out — enable them when you have Apple Developer account & profiles.
+
+    steps:
+      # 1. Clone your repo
+      - git-clone: {}
+
+      # 2. Cache pull for dependencies
+      - cache-pull: {}
+
+      # 3. Setup environment variables and destination for simulator
+      - script:
+          title: Setup environment variables
+          inputs:
+            - content: |
+                echo "Scheme: $BITRISE_SCHEME"
+                echo "Project path: $BITRISE_PROJECT_PATH"
+                export DESTINATION="platform=iOS Simulator,name=iPhone 14,OS=latest"
+                echo "Destination set to $DESTINATION"
+
+      # 4. Resolve Swift packages (SPM)
+      - script:
+          title: Resolve Swift Packages
+          inputs:
+            - content: |
+                xcodebuild -resolvePackageDependencies -project "$BITRISE_PROJECT_PATH"
+
+      # 5. (Optional) Install CocoaPods dependencies
+      # Uncomment if your project uses CocoaPods
+      # - cocoapods-install: {}
+
+      # 6. Build for testing (simulator, Debug)
+      - xcode-build-for-test:
+          inputs:
+            project_path: "$BITRISE_PROJECT_PATH"
+            scheme: "$BITRISE_SCHEME"
+            configuration: "Debug"
+            sdk: "iphonesimulator"
+            destination: "$DESTINATION"
+            clean_build: "yes"
+
+      # 7. Run tests on simulator
+      - xcode-test:
+          inputs:
+            project_path: "$BITRISE_PROJECT_PATH"
+            scheme: "$BITRISE_SCHEME"
+            destination: "$DESTINATION"
+            sdk: "iphonesimulator"
+
+      # 8. Archive the app (prepare for export)
+      - xcode-archive:
+          inputs:
+            project_path: "$BITRISE_PROJECT_PATH"
+            scheme: "$BITRISE_SCHEME"
+            configuration: "Debug"
+            export_method: "development"
+            build_path: "$BITRISE_SOURCE_DIR/build"
+
+            # -- Signing related options below: COMMENTED OUT --
+            # Uncomment and configure when you have a paid Apple Developer Account
+
+            # export_options_plist_content: |-
+            #   <?xml version="1.0" encoding="UTF-8"?>
+            #   <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            #   <plist version="1.0">
+            #   <dict>
+            #     <key>method</key>
+            #     <string>development</string>
+            #     <key>signingStyle</key>
+            #     <string>manual</string>
+            #     <key>provisioningProfiles</key>
+            #     <dict>
+            #       <key>com.your.bundle.identifier</key> <!-- Replace with your actual bundle ID -->
+            #       <string>Your Provisioning Profile Name</string>
+            #     </dict>
+            #   </dict>
+            #   </plist>
+
+            # automatic_code_signing: "no"
+
+      # 9. Deploy the generated artifacts (.ipa, logs etc)
+      - deploy-to-bitrise-io:
+          inputs:
+            deploy_path: "$BITRISE_DEPLOY_DIR"
+
+      # 10. Cache push for dependencies to speed up future builds
+      - cache-push: {}
