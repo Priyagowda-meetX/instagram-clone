@@ -13,7 +13,7 @@ workflows:
   build-ipa:
     description: |
       Build and archive .ipa for the iOS app.
-      Signing steps are commented out — enable them when you have Apple Developer account & profiles.
+      Signing steps configured — update with your Apple Developer info.
 
     steps:
       # 1. Clone your repo
@@ -70,27 +70,24 @@ workflows:
             export_method: "development"
             build_path: "$BITRISE_SOURCE_DIR/build"
 
-            # -- Signing related options below: COMMENTED OUT --
-            # Uncomment and configure when you have a paid Apple Developer Account
+            export_options_plist_content: |-
+              <?xml version="1.0" encoding="UTF-8"?>
+              <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+              <plist version="1.0">
+              <dict>
+                <key>method</key>
+                <string>development</string>
+                <key>signingStyle</key>
+                <string>manual</string>
+                <key>provisioningProfiles</key>
+                <dict>
+                  <key>com.lamberthyl.swift-instagram-clone</key>
+                  <string>Your Provisioning Profile Name</string>
+                </dict>
+              </dict>
+              </plist>
 
-            # export_options_plist_content: |-
-            #   <?xml version="1.0" encoding="UTF-8"?>
-            #   <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            #   <plist version="1.0">
-            #   <dict>
-            #     <key>method</key>
-            #     <string>development</string>
-            #     <key>signingStyle</key>
-            #     <string>manual</string>
-            #     <key>provisioningProfiles</key>
-            #     <dict>
-            #       <key>com.your.bundle.identifier</key> <!-- Replace with your actual bundle ID -->
-            #       <string>Your Provisioning Profile Name</string>
-            #     </dict>
-            #   </dict>
-            #   </plist>
-
-            # automatic_code_signing: "no"
+            automatic_code_signing: "no"
 
       # 9. Deploy the generated artifacts (.ipa, logs etc)
       - deploy-to-bitrise-io:
