@@ -43,6 +43,16 @@ workflows:
       # Uncomment if your project uses CocoaPods
       # - cocoapods-install: {}
 
+      # 5.1. Ensure environment files are handled correctly
+      - script:
+          title: Add Env .plist files to Resources
+          inputs:
+            - content: |
+                echo "Copying env .plist files to a known location..."
+                mkdir -p "$BITRISE_SOURCE_DIR/Resources"
+                cp $BITRISE_SOURCE_DIR/Sources/Env/Resources/env.*.plist $BITRISE_SOURCE_DIR/Resources/
+                echo "Done copying env files."
+
       # 6. Build for testing (simulator, Debug)
       - xcode-build-for-test:
           inputs:
@@ -69,7 +79,6 @@ workflows:
             configuration: "Debug"
             export_method: "development"
             build_path: "$BITRISE_SOURCE_DIR/build"
-
             export_options_plist_content: |-
               <?xml version="1.0" encoding="UTF-8"?>
               <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -86,7 +95,6 @@ workflows:
                 </dict>
               </dict>
               </plist>
-
             automatic_code_signing: "no"
 
       # 9. Deploy the generated artifacts (.ipa, logs etc)
