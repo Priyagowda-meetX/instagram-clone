@@ -49,19 +49,9 @@ workflows:
           inputs:
             - content: |
                 echo "Copying env .plist files to a known location..."
-                mkdir -p "$BITRISE_SOURCE_DIR/Resources"
-                cp $BITRISE_SOURCE_DIR/Sources/Env/Resources/env.*.plist $BITRISE_SOURCE_DIR/Resources/
+                mkdir -p "$BITRISE_SOURCE_DIR/"
+                cp $BITRISE_SOURCE_DIR/Sources/Env/env.*.plist $BITRISE_SOURCE_DIR/
                 echo "Done copying env files."
-
-      # 6. Build for testing (simulator, Debug)
-      - xcode-build-for-test:
-          inputs:
-            project_path: "$BITRISE_PROJECT_PATH"
-            scheme: "$BITRISE_SCHEME"
-            configuration: "Debug"
-            sdk: "iphonesimulator"
-            destination: "$DESTINATION"
-            clean_build: "yes"
 
       # 7. Run tests on simulator
       - xcode-test:
